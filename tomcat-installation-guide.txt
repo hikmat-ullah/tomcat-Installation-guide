@@ -1,0 +1,75 @@
+yum update
+yum install epel-release
+
+sudo yum install java-11-openjdk-devel
+
+Now go to  tomcat website and download the required version of tomcat. Select the desired version and copy the link address. Open up your terminal and paste the link address with like so.
+
+cd /tmp/
+
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.70/bin/apache-tomcat-9.0.70.tar.gz
+ls
+
+Now add group and user for tomcat 
+
+groupadd tomcat --system
+
+useradd -d /opt/tomcat -r -s /bin/false -g tomcat tomcat
+
+tar xvf apache-tomcat-9.0.70.tar.gz
+ls
+Now create a directory uder /opt/tomcat and move the extracted tar file into it
+mkdir /opt/tomcat
+
+mv apache-tomcat-9.0.70 /opt/tomcat
+
+cd /opt/tomcat/
+
+chown -R tomcat: /opt/tomcat/
+
+Run this command to verify the owner ship of tomcat directory
+
+ls -l 
+
+Now create a systemd for tomcat to start, stop, enable and disable tomcat service
+open up this file with vi or vim editor, paste the following contents inside the hashed lines
+
+vi /etc/systemd/system/tomcat.service
+
+################################
+[Unit]
+Description=Tomcat 9 servlet container
+After=syslog.target network.target
+
+[Service]
+Type=forking
+
+Environment=JAVA_HOME=/usr/lib/jvm/jre
+Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
+Environment=CATALINA_HOME=/opt/tomcat
+Environment=CATALINA_BASE=/opt/tomcat
+Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
+Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/bin/kill -15 $MAINPID
+
+User=tomcat
+Group=tomcat
+
+[Install]
+WantedBy=multi-user.target
+#######################################
+
+Inside the vi editor press esc key to come to normal mode and then press shift :wq to save the systemd service file for tomcat
+
+Now run the following command to check whether the systemd we created for tomcat is working or not.
+Start tomcat service
+
+# systemctl start tomcat.service
+
+Check tomcat status
+
+#systemctl status tomcat.service
+
+I hope the systemd for tomcat will be up and running.
